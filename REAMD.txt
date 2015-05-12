@@ -1,0 +1,14 @@
+The programe is provided by Zhuhong, 2015, 5, 11
+
+And it depends on the "xdrfile" library!
+
+
+Firstly, the C++ programe aims to :
+Treat the xtc file (trajectory file) produced by the Gromacs running.
+In gromacs, the produced trajectory file is treated using PBC, thus the the system is exactly in a box, BUT, 
+the molecules may be divided into two parts located at two sides of a simulation box. THEN, we need to merge the "two parts" back to a molecule, 
+just as the the real state. 
+
+Then Hong Zhu wrote a C++ programe to achieve this!!!
+
+Secondly, the "Trj_modify2.py" script is a similar python script to achieve the same function, but wrote in python and depends on the "MDAnalysis" library!

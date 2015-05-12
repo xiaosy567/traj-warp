@@ -27,27 +27,27 @@ import time as Time
 
 
 def Usage():
-    print "Usage: Trj_modify.py topfile trjfile index.ndx output.xtc"
+    print "Usage: Trj_modify.py topfile trjfile output.xtc"
 
-def Move_2_center(top_file,trj_file,index_file,trjout_file):
+def Move_2_center(top_file,trj_file,trjout_file):
     u=Universe(top_file,trj_file)
     TRAJ_FRAMES=u.trajectory.numframes
     w = Writer(trjout_file, u.trajectory.numatoms)
 
     
     atoms=Simple_atom.Get_Simple_atom_list(top_file)
-    index = Index.Read_index_to_Inclass(index_file)
+    index = Index.Atomlist_2_Index(atoms)
     Index.Print_Index(index)
     while True:
         try:
             solute_index=int(raw_input("Choosing the group for centering:"))
-            # solvent_index = int(raw_input("Choosing the solvent group:"))
+            solvent_index = int(raw_input("Choosing the solvent group:"))
             break
         except:
             print "You should input a number."
             continue
     solute_group  = index[solute_index].group_list
-    # solvent_group = index[solvent_index].group_list
+    solvent_group = index[solvent_index].group_list
     solute_atoms  =len(solute_group)
     NUM_ATOMS = u.trajectory.numatoms
     # print "\t Reading %d frames from trajectory file: %s" %(nframes,traj_file)    
@@ -56,7 +56,7 @@ def Move_2_center(top_file,trj_file,index_file,trjout_file):
         ref_com =np.zeros((3),dtype=np.float32)    
 
         # sys.stderr.write("\t Reading frame %8d\r" %ts.frame)
-        # sys.stderr.flush()
+        sys.stderr.flush()
 
         for i,ai in list(enumerate(solute_group)):
             ref_com[0] += ts._x[ai-1]
@@ -78,6 +78,8 @@ def Move_2_center(top_file,trj_file,index_file,trjout_file):
 
             if (i+1) in solute_group:
                 continue
+            elif (i+1) in solvent_group :
+                continue
 
             if ts._x[i] > dimensions[0] or ts._x[i] <0:
                 ts._x[i]=ts._x[i]%dimensions[0]
@@ -87,6 +89,27 @@ def Move_2_center(top_file,trj_file,index_file,trjout_file):
 
             if ts._z[i] > dimensions[2] or ts._z[i] < 0:
                 ts._z[i]=ts._z[i]%dimensions[2]
+
+        for i, ii in enumerate(solvent_group):
+            if i %3 ==0:
+                if ts._x[ii-1] > dimensions[0] or ts._x[ii-1] < 0:
+                    X_n = math.floor( ts._x[ii-1] / dimensions[0])
+                    ts._x[ii-1] = ts._x[ii-1] - dimensions[0] * X_n
+                    ts._x[ii]   = ts._x[ii]   - dimensions[0] * X_n
+                    ts._x[ii+1] = ts._x[ii+1] - dimensions[0] * X_n
+
+                if ts._y[ii-1] > dimensions[1] or ts._y[ii-1] < 0:
+                    Y_n = math.floor( ts._y[ii-1] / dimensions[1])    
+                    ts._y[ii-1] = ts._y[ii-1] - dimensions[1] * Y_n
+                    ts._y[ii]   = ts._y[ii]   - dimensions[1] * Y_n
+                    ts._y[ii+1] = ts._y[ii+1] - dimensions[1] * Y_n
+
+                if ts._z[ii-1] > dimensions[2] or ts._z[ii-1] < 0:
+                    Z_n = math.floor( ts._z[ii-1] / dimensions[2])
+                    ts._z[ii-1] = ts._z[ii-1] - dimensions[2] * Z_n
+                    ts._z[ii]   = ts._z[ii]   - dimensions[2] * Z_n
+                    ts._z[ii+1] = ts._z[ii+1] - dimensions[2] * Z_n
+
 
         NOW_TIME=Time.time()
         BIN_TIME=NOW_TIME-START_TIME
@@ -104,15 +127,14 @@ def Move_2_center(top_file,trj_file,index_file,trjout_file):
 
 
 if __name__=="__main__":
-    if len(sys.argv)!=5:
+    if len(sys.argv)!=4:
         Usage()
         sys.exit()
 
     topol =sys.argv[1] #PRMpbc
     intrj =sys.argv[2] #TRJpbc_bz2
-    index = sys.argv[3]
-    outtrj = sys.argv[4]
-    Move_2_center(topol,intrj,index,outtrj)    
+    outtrj = sys.argv[3]
+    Move_2_center(topol,intrj,outtrj)    
 
 
 
