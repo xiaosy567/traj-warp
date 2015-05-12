@@ -61,6 +61,38 @@ void Move_2_center(char * trj_file, char * index_file, char * trjout_file)
     xtc_out = xdrfile_open(trjout_file,"w");
     X_out=(rvec * )calloc(natoms,sizeof(X_in[0]));
 
+    vector<int>solgroup_list; // A vector built to store the atoms not included in centering_group and solvent_group;
+    for (int i = 0; i < natoms; ++i)
+    {
+        bool pointer=false;
+        vector<int>::iterator itc=centering_list.begin();
+        itc = find(centering_list.begin(), centering_list.end(), i+1);
+        if(itc != centering_list.end()){
+            continue;
+        }
+
+        vector<int>::iterator its=solvent_list.begin();
+        its = find(solvent_list.begin(), solvent_list.end(), i+1);
+        if(its != solvent_list.end()){
+            continue;
+        }
+
+        solgroup_list.push_back(i+1);
+
+    }
+
+    // cout<<natoms<<endl;
+    // cout<<centering_atoms<<endl;
+    // cout<<solvent_atoms<<endl;
+    // cout<<solgroup_list.size()<<endl;
+
+    if (solgroup_list.size() == (natoms - centering_list.size() - solvent_list.size()))
+    {
+        cout<<"The solgroup_list (the group with centering and solvent group) is built.."<<endl;
+    }
+
+    cout<<"==apply PBC to solvent for each frame=="<<endl;
+
     while(1)
     {
         read_return=read_xtc(xtc_in,natoms,&step,&time_temp,box,X_in,&p);
@@ -72,6 +104,7 @@ void Move_2_center(char * trj_file, char * index_file, char * trjout_file)
         //{
         	cout << "step: "<< step << endl;
         //}
+        /*
         for (int i = 0; i < 3; ++i)
         {
         	for (int j = 0; j < 3; ++j)
@@ -80,6 +113,7 @@ void Move_2_center(char * trj_file, char * index_file, char * trjout_file)
         	}
         	cout<<endl;
         }
+        */
 
         // calculate the distance between the center of centering_group and center of box [ref_com];
         float ref_com[3];
@@ -133,8 +167,8 @@ void Move_2_center(char * trj_file, char * index_file, char * trjout_file)
             int atomSerial = i + 1;
             
             
-            bool pionterCl=false;
-            bool pionterSl=false;
+            //bool pionterCl=false;
+            //bool pionterSl=false;
             /*
             // cout<<"pionterSl=\t"<<pionterSl<<"\t pionterCl=\t"<<pionterCl<<endl;
             vector<int>::iterator icl;
@@ -159,7 +193,7 @@ void Move_2_center(char * trj_file, char * index_file, char * trjout_file)
 			cout<<"hello!!"<<endl;
 
 			*/
-
+            /*
             for (int m = 0; m < centering_atoms; ++m)
             {
                 if (atomSerial==centering_list[m])
@@ -182,7 +216,26 @@ void Move_2_center(char * trj_file, char * index_file, char * trjout_file)
             {
                 continue;
             }
+            */
+            /*
+            for (int m = 0; m < solgroup_list.size(); ++m)
+            {
+                if (atomSerial==solgroup_list[m])
+                    {
+                        pionterCl=true;
+                        break;
+                    }    
+            }
+            */
 
+            
+            bool pionter=false;
+            vector<int>::iterator pt;
+            pt = find(solgroup_list.begin(), solgroup_list.end(), atomSerial);
+            if(pt == solgroup_list.end())
+            {
+                continue;
+            }
             // cout<<".... i= \t"<<i<<endl;
             for(int j=0;j<3;j++)
             {
@@ -206,7 +259,6 @@ void Move_2_center(char * trj_file, char * index_file, char * trjout_file)
         }
 
         //apply PBC to solvent for each frame;
-        cout<<"apply PBC to solvent for each frame"<<endl;
        for (int i = 0; i < solvent_atoms; ++i)
        {
        		if(i % 3 == 0)

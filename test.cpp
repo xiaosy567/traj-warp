@@ -25,10 +25,11 @@ int main()
 	// cin>>tv;
 	vector<int>::iterator it;
 	it = find(myvector.begin(), myvector.end(), tv);
-	if(it != myvector.end()){
-		cout<<"Element found..."<<*it<<endl;
-	}else{
+	if(it == myvector.end()){
 		cout<<"Element not found..."<<endl;	
+	}else{
+		cout<<"Element found..."<<*it<<endl;
+
 	}
 	
 	cout<<fmod(-1.9, 2.0)+2<<endl;
